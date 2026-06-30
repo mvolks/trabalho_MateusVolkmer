@@ -1,0 +1,251 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:h="http://xmlns.jcp.org/jsf/html"
+      xmlns:f="http://xmlns.jcp.org/jsf/core"
+>
+<h:head>
+    <title>Solicitação de Orçamento - Calculadora de Materiais</title>
+    <h:outputStylesheet name="css/orcamento.css" />
+</h:head>
+<h:body>
+
+    <div class="cabecalho">
+        <h1>Solicitação de Orçamento de Obra Residencial</h1>
+        <p>Informe a planta da sua casa cadastrando os pilares (vértices), as paredes (arestas) e os cômodos.</p>
+    </div>
+
+    <h:form id="formOrcamento">
+
+        <h:messages globalOnly="false" showDetail="true" showSummary="true" layout="table" styleClass="mensagens" />
+
+        <!-- ===================== Dados gerais ===================== -->
+        <div class="secao">
+            <h2>1. Dados gerais do projeto</h2>
+            <div class="campo">
+                <h:outputLabel for="nomePlanta" value="Nome do projeto / planta *" />
+                <h:inputText id="nomePlanta" value="#{plantaBaixaBean.nomePlanta}"
+                             required="true" requiredMessage="Informe o nome do projeto."
+                             placeholder="Ex: Residência Família Silva" />
+            </div>
+            <div class="campo">
+                <h:outputLabel for="descricaoPlanta" value="Descrição / Endereço" />
+                <h:inputTextarea id="descricaoPlanta" value="#{plantaBaixaBean.descricaoPlanta}"
+                                  rows="2" placeholder="Ex: Rua das Flores, 123 - Bairro Centro" />
+            </div>
+        </div>
+
+        <!-- ===================== Vértices (pilares) ===================== -->
+        <div class="secao">
+            <h2>2. Pilares (Vértices da planta)</h2>
+            <p class="ajuda">Cadastre cada ponto de encontro de paredes (pilar) com sua posição na planta, em metros.</p>
+
+            <div class="linha-formulario">
+                <div class="campo pequeno">
+                    <h:outputLabel for="vId" value="Identificador" />
+                    <h:inputText id="vId" value="#{plantaBaixaBean.novoVerticeIdentificador}" placeholder="P1" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="vX" value="Coordenada X (m)" />
+                    <h:inputText id="vX" value="#{plantaBaixaBean.novoVerticeX}" placeholder="0.0" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="vY" value="Coordenada Y (m)" />
+                    <h:inputText id="vY" value="#{plantaBaixaBean.novoVerticeY}" placeholder="0.0" />
+                </div>
+                <div class="campo medio">
+                    <h:outputLabel for="vDesc" value="Observação (opcional)" />
+                    <h:inputText id="vDesc" value="#{plantaBaixaBean.novoVerticeDescricao}" placeholder="Canto da sala" />
+                </div>
+                <div class="campo botao">
+                    <h:commandButton value="Adicionar pilar" action="#{plantaBaixaBean.adicionarVertice}" styleClass="btn-secundario" />
+                </div>
+            </div>
+
+            <h:dataTable value="#{plantaBaixaBean.vertices}" var="v" styleClass="tabela" rendered="#{not empty plantaBaixaBean.vertices}">
+                <h:column>
+                    <f:facet name="header">Identificador</f:facet>
+                    #{v.identificador}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">X (m)</f:facet>
+                    #{v.coordenadaX}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Y (m)</f:facet>
+                    #{v.coordenadaY}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Observação</f:facet>
+                    #{v.descricao}
+                </h:column>
+                <h:column>
+                    <f:facet name="header">Ação</f:facet>
+                    <h:commandLink value="Remover" action="#{plantaBaixaBean.removerVertice(v)}" styleClass="link-remover" />
+                </h:column>
+            </h:dataTable>
+        </div>
+
+        <!-- ===================== Arestas (paredes) ===================== -->
+        <div class="secao">
+            <h2>3. Paredes (Arestas que ligam dois pilares)</h2>
+            <p class="ajuda">Cadastre os pilares primeiro. Cada parede liga um pilar de origem a um pilar de destino.</p>
+
+            <div class="linha-formulario">
+                <div class="campo pequeno">
+                    <h:outputLabel for="aId" value="Identificador" />
+                    <h:inputText id="aId" value="#{plantaBaixaBean.novaArestaIdentificador}" placeholder="A1" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aOrigem" value="Pilar origem" />
+                    <h:selectOneMenu id="aOrigem" value="#{plantaBaixaBean.novaArestaOrigem}" converter="#{verticeConverter}">
+                        <f:selectItem itemLabel="Selecione..." itemValue="#{null}" />
+                        <f:selectItems value="#{plantaBaixaBean.vertices}" var="v" itemLabel="#{v.identificador}" itemValue="#{v}" />
+                    </h:selectOneMenu>
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aDestino" value="Pilar destino" />
+                    <h:selectOneMenu id="aDestino" value="#{plantaBaixaBean.novaArestaDestino}" converter="#{verticeConverter}">
+                        <f:selectItem itemLabel="Selecione..." itemValue="#{null}" />
+                        <f:selectItems value="#{plantaBaixaBean.vertices}" var="v" itemLabel="#{v.identificador}" itemValue="#{v}" />
+                    </h:selectOneMenu>
+                </div>
+            </div>
+
+            <div class="linha-formulario">
+                <div class="campo pequeno">
+                    <h:outputLabel for="aComp" value="Comprimento (m)" />
+                    <h:inputText id="aComp" value="#{plantaBaixaBean.novaArestaComprimento}" placeholder="4.50" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aEsp" value="Espessura (m)" />
+                    <h:inputText id="aEsp" value="#{plantaBaixaBean.novaArestaEspessura}" placeholder="0.14" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aAlt" value="Altura (m)" />
+                    <h:inputText id="aAlt" value="#{plantaBaixaBean.novaArestaAltura}" placeholder="2.80" />
+                </div>
+                <div class="campo medio">
+                    <h:outputLabel for="aComodo" value="Cômodo desta parede" />
+                    <h:inputText id="aComodo" value="#{plantaBaixaBean.novaArestaNomeComodo}" placeholder="Sala" />
+                </div>
+            </div>
+
+            <div class="linha-formulario">
+                <div class="campo checkbox">
+                    <h:selectBooleanCheckbox id="aPossuiPorta" value="#{plantaBaixaBean.novaArestaPossuiPorta}" />
+                    <h:outputLabel for="aPossuiPorta" value="Possui porta" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aAlturaPorta" value="Altura porta (m)" />
+                    <h:inputText id="aAlturaPorta" value="#{plantaBaixaBean.novaArestaAlturaPorta}" placeholder="2.10" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aLarguraPorta" value="Largura porta (m)" />
+                    <h:inputText id="aLarguraPorta" value="#{plantaBaixaBean.novaArestaLarguraPorta}" placeholder="0.80" />
+                </div>
+
+                <div class="campo checkbox">
+                    <h:selectBooleanCheckbox id="aPossuiJanela" value="#{plantaBaixaBean.novaArestaPossuiJanela}" />
+                    <h:outputLabel for="aPossuiJanela" value="Possui janela" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aAlturaJanela" value="Altura janela (m)" />
+                    <h:inputText id="aAlturaJanela" value="#{plantaBaixaBean.novaArestaAlturaJanela}" placeholder="1.20" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="aLarguraJanela" value="Largura janela (m)" />
+                    <h:inputText id="aLarguraJanela" value="#{plantaBaixaBean.novaArestaLarguraJanela}" placeholder="1.50" />
+                </div>
+            </div>
+
+            <div class="linha-formulario">
+                <div class="campo botao">
+                    <h:commandButton value="Adicionar parede" action="#{plantaBaixaBean.adicionarAresta}" styleClass="btn-secundario" />
+                </div>
+            </div>
+
+            <h:dataTable value="#{plantaBaixaBean.arestas}" var="a" styleClass="tabela" rendered="#{not empty plantaBaixaBean.arestas}">
+                <h:column><f:facet name="header">Id</f:facet>#{a.identificador}</h:column>
+                <h:column><f:facet name="header">Origem</f:facet>#{a.verticeOrigem.identificador}</h:column>
+                <h:column><f:facet name="header">Destino</f:facet>#{a.verticeDestino.identificador}</h:column>
+                <h:column><f:facet name="header">Comprimento (m)</f:facet>#{a.comprimento}</h:column>
+                <h:column><f:facet name="header">Espessura (m)</f:facet>#{a.espessura}</h:column>
+                <h:column><f:facet name="header">Altura (m)</f:facet>#{a.altura}</h:column>
+                <h:column><f:facet name="header">Porta</f:facet>
+                    <h:outputText value="Sim" rendered="#{a.possuiPorta}" />
+                    <h:outputText value="Não" rendered="#{!a.possuiPorta}" />
+                </h:column>
+                <h:column><f:facet name="header">Janela</f:facet>
+                    <h:outputText value="Sim" rendered="#{a.possuiJanela}" />
+                    <h:outputText value="Não" rendered="#{!a.possuiJanela}" />
+                </h:column>
+                <h:column><f:facet name="header">Cômodo</f:facet>#{a.nomeCoomodo}</h:column>
+                <h:column>
+                    <f:facet name="header">Ação</f:facet>
+                    <h:commandLink value="Remover" action="#{plantaBaixaBean.removerAresta(a)}" styleClass="link-remover" />
+                </h:column>
+            </h:dataTable>
+        </div>
+
+        <!-- ===================== Cômodos ===================== -->
+        <div class="secao">
+            <h2>4. Cômodos</h2>
+            <p class="ajuda">Informe nome e dimensões de cada cômodo formado pelas paredes acima.</p>
+
+            <div class="linha-formulario">
+                <div class="campo medio">
+                    <h:outputLabel for="cNome" value="Nome do cômodo" />
+                    <h:inputText id="cNome" value="#{plantaBaixaBean.novoComodoNome}" placeholder="Sala" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="cLargura" value="Largura (m)" />
+                    <h:inputText id="cLargura" value="#{plantaBaixaBean.novoComodoLargura}" placeholder="3.50" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="cComprimento" value="Comprimento (m)" />
+                    <h:inputText id="cComprimento" value="#{plantaBaixaBean.novoComodoComprimento}" placeholder="4.00" />
+                </div>
+                <div class="campo pequeno">
+                    <h:outputLabel for="cAltura" value="Altura (m)" />
+                    <h:inputText id="cAltura" value="#{plantaBaixaBean.novoComodoAltura}" placeholder="2.80" />
+                </div>
+                <div class="campo botao">
+                    <h:commandButton value="Adicionar cômodo" action="#{plantaBaixaBean.adicionarComodo}" styleClass="btn-secundario" />
+                </div>
+            </div>
+
+            <h:dataTable value="#{plantaBaixaBean.comodos}" var="c" styleClass="tabela" rendered="#{not empty plantaBaixaBean.comodos}">
+                <h:column><f:facet name="header">Nome</f:facet>#{c.nome}</h:column>
+                <h:column><f:facet name="header">Largura (m)</f:facet>#{c.largura}</h:column>
+                <h:column><f:facet name="header">Comprimento (m)</f:facet>#{c.comprimento}</h:column>
+                <h:column><f:facet name="header">Altura (m)</f:facet>#{c.altura}</h:column>
+                <h:column><f:facet name="header">Área (m²)</f:facet>#{c.area}</h:column>
+                <h:column>
+                    <f:facet name="header">Ação</f:facet>
+                    <h:commandLink value="Remover" action="#{plantaBaixaBean.removerComodo(c)}" styleClass="link-remover" />
+                </h:column>
+            </h:dataTable>
+        </div>
+
+        <!-- ===================== Envio ===================== -->
+        <div class="secao envio">
+            <h:commandButton value="Enviar solicitação de orçamento"
+                              action="#{plantaBaixaBean.enviarSolicitacao}"
+                              styleClass="btn-primario" />
+            <h:commandButton value="Limpar e iniciar nova solicitação"
+                              action="#{plantaBaixaBean.novaSolicitacao}"
+                              immediate="true"
+                              styleClass="btn-secundario" />
+
+            <h:panelGroup rendered="#{plantaBaixaBean.idOrcamentoGerado != null}">
+                <p class="resultado-ok">
+                    Solicitação registrada! Número do orçamento:
+                    <strong>#{plantaBaixaBean.idOrcamentoGerado}</strong>
+                </p>
+            </h:panelGroup>
+        </div>
+
+    </h:form>
+
+</h:body>
+</html>
